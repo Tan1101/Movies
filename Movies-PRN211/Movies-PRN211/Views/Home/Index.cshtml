@@ -1,0 +1,72 @@
+﻿@model IEnumerable<Movies_PRN211.Models.Movie>
+@using Newtonsoft.Json;
+@using Microsoft.AspNetCore.Session;
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Movies_PRN211.Models.MoviesContext con = new Movies_PRN211.Models.MoviesContext();
+}
+
+<h1>Index</h1>
+
+<p>
+    @{
+
+        string? userJson = Context.Session.GetString("User");
+        if(userJson != null)
+        {
+            Movies_PRN211.Models.Account acc = JsonConvert.DeserializeObject<Movies_PRN211.Models.Account>(userJson);
+            if (acc.Role == "admin")
+            {
+                @using (Html.BeginForm("Create", "Home", FormMethod.Get))
+                {
+                    <input type="submit" class="btn btn-primary" data-toggle="modal" data-target="#myModal" value="Create New">
+                }
+            }
+        }
+        
+    }
+</p>
+
+<div style="display:flex">
+    <div>
+        <h4>Categoris</h4>
+            <a class="btn btn-primary" style="@(@ViewBag.caid == null ? "color: red" : ""); margin:2px" href="/Home/Index?name=@ViewBag.name&view=@ViewBag.view">ALL</a>
+            <br />
+            @foreach (var list_de in con.Categories.ToList())
+            {
+                <a class="btn btn-primary" style="@(@ViewBag.caid == list_de.CaId ? "color: red":"" ); margin:2px" href="/Home/Index?name=@ViewBag.name&caid=@list_de.CaId&view=@ViewBag.view">@list_de.CaName</a>
+                <br />
+            }
+        @using (Html.BeginForm("Index", "Home", FormMethod.Get))
+        {
+            <p>Name </p>
+            <input name="name" type="text" value="@ViewBag.name" />
+            <input hidden name="caid" type="text" value="@ViewBag.caid" />
+            <input hidden name="view" type="text" value="@ViewBag.view" />
+            <input type="submit" value="Search" />
+        }
+        <br />
+        <a class="btn btn-primary" style="@(@ViewBag.view == null ? "color: red":"" );margin:2px" href="/Home/Index?name=@ViewBag.name&caid=@ViewBag.caid">Normal</a>
+        <a class="btn btn-primary" style="@(@ViewBag.view == "des" ? "color: red":"" );margin:2px" href="/Home/Index?name=@ViewBag.name&caid=@ViewBag.caid&view=des">DES</a>
+        <a class="btn btn-primary" style="@(@ViewBag.view == "asc" ? "color: red":"" );margin:2px" href="/Home/Index?name=@ViewBag.name&caid=@ViewBag.caid&view=asc">ASC</a>
+    </div>
+
+    <div class="product-container">
+        @foreach (var item in Model)
+        {
+            <div class="product-field">
+            <a href="/Home/Detail?id=@item.Id">
+                    <input type="image" src="~/img/@Html.DisplayFor(modelItem => item.Img)">
+            </a>
+            <br>
+                <h5>@Html.DisplayFor(modelItem => item.Name) </h5>
+                @Html.DisplayFor(modelItem => item.View) View
+            </div>
+        }
+    </div>
+</div>
+

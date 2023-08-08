@@ -1,0 +1,150 @@
+﻿@model Movies_PRN211.Models.Movie
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Newtonsoft.Json;
+@using Microsoft.AspNetCore.Session;
+@{
+    ViewData["Title"] = "Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    Movies_PRN211.Models.MoviesContext con = new Movies_PRN211.Models.MoviesContext();
+}
+<h1>Details</h1>
+<link href="Content/bootstrap.min.css" rel="stylesheet" />
+<div>
+    <h4>Movie</h4>
+    <hr />
+
+    <div style="display:flex" class="product-field">
+        <div>
+            <input type="image" src="~/img/@Html.DisplayFor(modelItem => Model.Img)">
+            <br />
+            <!-- Nút kích hoạt popup -->
+            <input id="btnShowPopup" style="margin:2px" type="submit" class="btn btn-primary" data-toggle="modal" data-target="#myModal" value="Watch">
+            
+            @{
+                string? userJson = Context.Session.GetString("User");
+                if (userJson != null)
+                {
+                    Movies_PRN211.Models.Account acc = JsonConvert.DeserializeObject<Movies_PRN211.Models.Account>(userJson);
+                    if (acc.Role == "admin")
+                    {
+                        @using (Html.BeginForm("Edit", "Home", FormMethod.Get))
+                        {
+                            <input hidden type="text" name="id" value="@Model.Id">
+                            <input style="margin:2px" type="submit" class="btn btn-primary" data-toggle="modal" data-target="#myModal" value="Edit">
+                        }
+                        @using (Html.BeginForm("Delete", "Home", FormMethod.Get))
+                        {
+                            <input hidden type="text" name="id" value="@Model.Id">
+                            <input style="margin:2px" type="submit" class="btn btn-primary" data-toggle="modal" data-target="#myModal" value="Delete">
+                        }
+                    }
+                }
+            }
+
+            
+        </div>
+
+        <div style="text-align:left;margin-left:100px">
+            <h5>@Html.DisplayFor(model => model.Name)</h5>
+            @Html.DisplayNameFor(model => model.Year)
+            @Html.DisplayFor(model => model.Year)
+            <br />
+            @Html.DisplayFor(model => model.View)
+            @Html.DisplayNameFor(model => model.View)
+            <br />
+            @Html.DisplayNameFor(model => model.Director):
+            @Html.DisplayFor(model => model.Director)
+            <br />
+            @Html.DisplayNameFor(model => model.Description):
+            @Html.DisplayFor(model => model.Description)
+            <br />
+            <br />
+            <br />
+            <h5>Comments</h5>
+            @foreach (var cmt in con.Comments.ToList())
+            {
+                if(cmt.Id == Model.Id)
+                {
+                    <label>@cmt.Name (@cmt.Date.Day/@cmt.Date.Month):  </label>
+                    @cmt.Comment1
+                    <br />
+                }
+            }
+
+            @{
+                @using (Html.BeginForm("Comment", "Home", FormMethod.Post))
+                {
+                    if (userJson != null)
+                    {
+                        Movies_PRN211.Models.Account acc = JsonConvert.DeserializeObject<Movies_PRN211.Models.Account>(userJson);
+                        
+                        <input hidden type="text" name="id" value="@Model.Id">
+                        <input hidden type="text" name="name" value="@acc.Name">
+                        <input type="text" name="cmt" value="">
+
+                        <input type="submit" class="btn btn-primary" data-toggle="modal" data-target="#myModal" value="Comment">
+                    }
+                }
+            }
+
+        </div>
+
+        
+
+    </div>
+
+</div>
+
+
+
+
+
+<!-- Popup -->
+<div id="popup" class="popup">
+    <h4>Have a good time watching the movie.</h4>
+    @using (Html.BeginForm("Detail", "Home", FormMethod.Post))
+    {
+        <input hidden type="text" name="id" value="@Model.Id">
+        <input hidden type="text" name="view" value="@Model.View">
+        <input hidden type="text" name="des" value="@Model.Description">
+        <input hidden type="text" name="img" value="@Model.Img">
+        <input hidden type="text" name="name" value="@Model.Name">
+        <input hidden type="text" name="caid" value="@Model.CaId">
+        <input hidden type="text" name="year" value="@Model.Year">
+        <input hidden type="text" name="dir" value="@Model.Director">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input id="btnClosePopup" type="submit" class="btn btn-primary" data-toggle="modal" data-target="#myModal" value="OK">
+    }
+</div>
+<script>
+    // Mã JavaScript để hiển thị popup khi nút được nhấn
+    document.getElementById('btnShowPopup').addEventListener('click', function () {
+        var popup = document.getElementById('popup');
+        popup.style.display = 'block';
+    });
+    document.getElementById('btnClosePopup').addEventListener('click', function () {
+        var popup = document.getElementById('popup');
+        popup.style.display = 'none';
+    });
+</script>
+
+
+<style>
+    /* CSS cho popup */
+    .popup {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #fff;
+        border: 1px solid #ccc;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+</style>
+
+<!-- Thêm các tệp JavaScript của Bootstrap -->
+<div>
+    <a class="btn btn-primary" asp-action="Index">Back to List</a>
+</div>
